@@ -88,7 +88,7 @@ end
 if #foundAnimals > 0 then
     local descriptionLines = {}
     for _, animal in ipairs(foundAnimals) do
-        local line = string.format("**%s** - Gen: `%s` | 💎 %s%s",
+        local line = string.format("**%s** - Gen: %s | 💎 %s%s",
             animal.displayName,
             animal.generation,
             animal.rarity,
@@ -109,11 +109,11 @@ if #foundAnimals > 0 then
         fields = {
             {
                 name = "🔁 Teleport Command",
-                value = string.format("```lua\ngame:GetService(\"TeleportService\"):TeleportToPlaceInstance(%d, \"%s\", game.Players.LocalPlayer)\n```", placeId, jobId)
+                value = string.format("lua\ngame:GetService('TeleportService'):TeleportToPlaceInstance(%d, "%s", game.Players.LocalPlayer)\n", placeId, jobId)
             },
             {
                 name = "🔗 Server Info",
-                value = string.format("Players: `%d/%d`\nServer ID: `%s`", #Players:GetPlayers(), Players.MaxPlayers, jobId)
+                value = string.format("Players: %d/%d\nServer ID: %s", #Players:GetPlayers(), Players.MaxPlayers, jobId)
             },
             {
                 name = "👤 Current User",
@@ -148,8 +148,7 @@ local function ServerHop()
         if response and response.Success then
             local data = HttpService:JSONDecode(response.Body)
             for _, server in ipairs(data.data) do
-                local playing = tonumber(server.playing)
-                if playing and playing >= 3 and playing < 7 and server.id ~= currentJobId then
+                if tonumber(server.playing) < 7 and server.id ~= currentJobId then
                     table.insert(servers, server.id)
                 end
             end
@@ -162,7 +161,9 @@ local function ServerHop()
 
     if #servers > 0 then
         local targetServer = servers[math.random(1, #servers)]
-        queue_on_teleport([[loadstring(game:HttpGet("https://raw.githubusercontent.com/rolexwvwa-alt/testr/refs/heads/main/ghtgh.txt"))()]])
+        queue_on_teleport([[
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/rolexwvwa-alt/testr/refs/heads/main/ghtgh.txt"))()
+        ]])
         TeleportService:TeleportToPlaceInstance(placeId, targetServer, LocalPlayer)
     end
 end
