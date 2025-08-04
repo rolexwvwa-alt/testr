@@ -10,10 +10,23 @@ local jobId = game.JobId
 local playerName = LocalPlayer.Name
 
 local animals = {
-    ["Pot Hotspot"] = true, ["Torrtuginni Dragonfrutini"] = true, ["Lucky Block"] = true,
-    ["Garama and Madundung"] = true, ["La Grande Combinazione"] = true, ["Graipuss Medussi"] = true,
-    ["Las Tralaleritas"] = true, ["Los Tralaleritos"] = true, ["Sammyni Spiderini"] = true,
-    ["La Vacca Saturno Saturnita"] = true
+    ["Pot Hotspot"] = true, 
+    ["Torrtuginni Dragonfrutini"] = true, 
+    ["Garama and Madundung"] = true, 
+    ["La Grande Combinasion"] = true, 
+    ["Graipuss Medussi"] = true,
+    ["Las Tralaleritas"] = true, 
+    ["Los Tralaleritos"] = true, 
+    ["Sammyni Spiderini"] = true,
+    ["La Vacca Saturno Saturnita"] = true,
+    ["Secret Lucky Block"] = true,
+    ["Chimpanzini Spiderini"] = true,
+    ["Los Combinasionas"] = true,
+    ["Nuclearo Dinossauro"] = true,
+    ["Dragon Cannelloni"] = true,
+    ["Chicleteira Bicicleteira"] = true,
+    ["Las Vaquitas Saturnitas"] = true,
+    ["Agarrini la Palini"] = true
 }
 
 local function SendMessageEMBED(url, embed)
@@ -135,7 +148,8 @@ local function ServerHop()
         if response and response.Success then
             local data = HttpService:JSONDecode(response.Body)
             for _, server in ipairs(data.data) do
-                if tonumber(server.playing) < 7 and server.id ~= currentJobId then
+                local playing = tonumber(server.playing)
+                if playing and playing >= 3 and playing < 7 and server.id ~= currentJobId then
                     table.insert(servers, server.id)
                 end
             end
@@ -148,9 +162,7 @@ local function ServerHop()
 
     if #servers > 0 then
         local targetServer = servers[math.random(1, #servers)]
-        queue_on_teleport([[
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/rolexwvwa-alt/testr/refs/heads/main/ghtgh.txt"))()
-        ]])
+        queue_on_teleport([[loadstring(game:HttpGet("https://raw.githubusercontent.com/rolexwvwa-alt/testr/refs/heads/main/ghtgh.txt"))()]])
         TeleportService:TeleportToPlaceInstance(placeId, targetServer, LocalPlayer)
     end
 end
