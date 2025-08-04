@@ -4,7 +4,7 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Workspace = game:GetService("Workspace")
 
-local webhookUrl = "https://discord.com/api/webhooks/1401672811004690494/PaTA-0IuiX2naLAz4eNb9bL6gWJ3uzH_WpTPyShV38JlcEMOef6Op3iq0gYDrphYXsBP"
+local webhookUrl = "https://ptb.discord.com/api/webhooks/1287166609919574128/uEd1wSeZirb4CR6iU_Oqe3mk09xyjiuFDvsSwlrHKwmcFtN2okhoE1bu6w6Eymed-iVJ"
 local placeId = game.PlaceId
 local jobId = game.JobId
 local playerName = LocalPlayer.Name
